@@ -40,9 +40,7 @@ QString Mpd::idle(QList<QByteArray> systems) {
   return sendRequest({"idle", systems}).data["changed"];
 }
 
-MpdThread::MpdThread() {
-  setTerminationEnabled(false);
-}
+MpdThread::MpdThread() { setTerminationEnabled(false); }
 
 MpdThread::~MpdThread() {
   quitting = true;
@@ -58,7 +56,8 @@ void MpdThread::run() {
 
   while (!quitting) {
     auto song = mpd.sendRequest({"currentsong"});
-    emit songChanged(song.data["Artist"], song.data["Title"]);
+    auto status = mpd.sendRequest({"status"});
+    emit songChanged(song, status);
 
     mpd.idle({"player"});
   }

@@ -35,7 +35,7 @@ public:
   void run() override;
 
 signals:
-  void songChanged(QString artist, QString title);
+  void songChanged(MpdResponse song, MpdResponse status);
 
 private:
   bool quitting;
