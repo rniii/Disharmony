@@ -1,3 +1,4 @@
+#pragma once
 #include <QTcpSocket>
 #include <QThread>
 
@@ -16,9 +17,9 @@ class Mpd : QObject {
   Q_OBJECT;
 
 public:
-  Mpd(const QString &host, quint16 port);
-
-  void connect();
+  void connect(const QString &host, quint16 port);
+  void writeRequest(MpdRequest req);
+  MpdResponse readResponse();
   MpdResponse sendRequest(MpdRequest req);
   QString idle(QList<QByteArray> systems);
 
@@ -30,13 +31,9 @@ class MpdThread : public QThread {
   Q_OBJECT;
 
 public:
-  MpdThread();
   ~MpdThread();
   void run() override;
 
 signals:
   void songChanged(MpdResponse song, MpdResponse status);
-
-private:
-  bool quitting;
 };

@@ -1,14 +1,18 @@
 #include <mpd.h>
 
-Mpd::Mpd(const QString &host, quint16 port) { sock.connectToHost(host, port); }
-
-void Mpd::connect() {
+void Mpd::connect(const QString &host, quint16 port) {
+  sock.connectToHost(host, port);
   sock.waitForReadyRead();
   auto line = sock.readLine();
   assert(line.startsWith("OK MPD"));
 }
 
-MpdResponse Mpd::sendRequest(MpdRequest req) {
+void Mpd::writeRequest(MpdRequest req) {
+  if (sock.state() != QTcpSocket::ConnectedState) {
+    QTextStream(stdout) << "reconnecting\n";
+    connect("127.0.0.1", 6600);
+  }
+
   auto cmd = req.cmd;
 
   for (auto arg : req.args) {
@@ -20,7 +24,11 @@ MpdResponse Mpd::sendRequest(MpdRequest req) {
   cmd += '\n';
 
   sock.write(cmd);
-  sock.waitForReadyRead();
+}
+
+MpdResponse Mpd::readResponse() {
+  while (!sock.waitForReadyRead())
+    ;
 
   MpdResponse res;
   for (;;) {
@@ -36,25 +44,26 @@ MpdResponse Mpd::sendRequest(MpdRequest req) {
   }
 }
 
+MpdResponse Mpd::sendRequest(MpdRequest req) {
+  return writeRequest(req), readResponse();
+}
+
 QString Mpd::idle(QList<QByteArray> systems) {
   return sendRequest({"idle", systems}).data["changed"];
 }
 
-MpdThread::MpdThread() { setTerminationEnabled(false); }
-
 MpdThread::~MpdThread() {
-  quitting = true;
   terminate();
   wait();
 }
 
 void MpdThread::run() {
-  Mpd mpd("localhost", 6600);
-  mpd.connect();
+  Mpd mpd;
+  mpd.connect("localhost", 6600);
 
   setTerminationEnabled();
 
-  while (!quitting) {
+  for (;;) {
     auto song = mpd.sendRequest({"currentsong"});
     auto status = mpd.sendRequest({"status"});
     emit songChanged(song, status);

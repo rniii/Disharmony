@@ -7,16 +7,19 @@ class Player : public QWidget {
 public:
   Player();
 
+signals:
+  void nextSong();
+  void previousSong();
+  void pause();
+
 public slots:
   void updateSong(MpdResponse song, MpdResponse status);
   void updateTime();
 
 private:
-  QLabel *title = new QLabel;
-  QLabel *artist = new QLabel;
-  QProgressBar *time;
+  QLabel *title;
+  QLabel *artist;
+  QSlider *time;
   QTimer *barTimer;
   QTime songStart;
-
-  MpdThread mpdThread;
 };

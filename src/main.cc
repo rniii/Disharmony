@@ -1,5 +1,5 @@
 #include <QtWidgets>
-#include <player.h>
+#include <mainwindow.h>
 
 int main(int argc, char *argv[]) {
   qRegisterMetaType<MpdResponse>("MpdResponse");
@@ -10,12 +10,7 @@ int main(int argc, char *argv[]) {
   QCoreApplication::setApplicationVersion("0.1.0");
   QCoreApplication::setOrganizationDomain("rinici.de");
 
-  auto main = new QWidget;
-  auto mainLayout = new QVBoxLayout(main);
-  mainLayout->addWidget(new Player());
-
-  QMainWindow win;
-  win.setCentralWidget(main);
+  MainWindow win;
   win.show();
 
   return app.exec();
